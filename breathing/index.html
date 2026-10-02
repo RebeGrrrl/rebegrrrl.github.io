@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calm breath</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500&family=Nunito:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg1:#ffdeed; --bg2:#fde5f3; --bg3:#f1e8fd;
+  --ink:#4a3b66; --ink-soft:#6f5f90; --panel:rgba(255,255,255,.55); --line:rgba(255,255,255,.85);
+  --track:#d6c9ee; --focus:#7a5fc0;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){ --bg1:#f5d4e5; --bg2:#f1daec; --bg3:#e2daf5; }
+}
+:root[data-theme="dark"]{ --bg1:#f5d4e5; --bg2:#f1daec; --bg3:#e2daf5; }
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{
+  margin:0;height:100%;overflow-y:auto;color:var(--ink);
+  font-family:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+  background:var(--bg2);
+  background:linear-gradient(160deg,var(--bg1) 0%,var(--bg2) 55%,var(--bg3) 100%) fixed;
+}
+main{
+  min-height:100%;width:100%;max-width:520px;margin:0 auto;padding:22px 20px 24px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+}
+.top{text-align:center;min-height:86px}
+.cue{
+  margin:0;font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-weight:500;
+  font-size:2.6rem;line-height:1.1;letter-spacing:.01em;
+}
+.count{margin:6px 0 0;font-size:1rem;color:var(--ink-soft);min-height:1.5em}
+.stage{flex:1 1 auto;width:100%;min-height:300px;display:flex;align-items:center;justify-content:center}
+svg{width:min(100%,560px);height:auto;max-height:56vh;display:block;filter:drop-shadow(0 10px 28px rgba(122,95,192,.28))}
+.panel{
+  width:100%;padding:18px 20px 16px;border-radius:24px;background:var(--panel);
+  border:1px solid var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  display:flex;flex-direction:column;gap:20px;
+}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.label{font-weight:600;font-size:1rem}
+.sub{font-size:.85rem;color:var(--ink-soft)}
+.switch{
+  position:relative;width:58px;height:32px;border:0;border-radius:16px;padding:0;cursor:pointer;
+  background:var(--track);transition:background .25s;flex:none;
+}
+.switch::after{
+  content:"";position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;
+  background:#fff;box-shadow:0 2px 6px rgba(74,59,102,.3);transition:transform .25s;
+}
+.switch[aria-checked="true"]{background:linear-gradient(90deg,#9fe3c4,#8ec6f2)}
+.switch[aria-checked="true"]::after{transform:translateX(26px)}
+.switch:focus-visible,input[type=range]:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:28px;margin:6px 0 0;background:transparent;cursor:pointer;display:block}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:linear-gradient(90deg,#b5ecd0,#9bcdf4)}
+input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:linear-gradient(90deg,#b5ecd0,#9bcdf4)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;margin-top:-8px;border-radius:50%;background:#fff;border:3px solid #8fc4ee;box-shadow:0 2px 6px rgba(74,59,102,.3)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid #8fc4ee;box-shadow:0 2px 6px rgba(74,59,102,.3)}
+.ticks{display:flex;justify-content:space-between;margin-top:2px}
+.ticks span{width:22px;text-align:center;font-size:.8rem;color:var(--ink-soft);position:relative;padding-top:9px}
+.ticks span::before{content:"";position:absolute;top:0;left:50%;width:1px;height:6px;background:var(--ink-soft);opacity:.55}
+.ticks span.on{color:var(--ink);font-weight:600}
+.ticks span.on::before{opacity:1;height:8px}
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <h1 class="cue" id="cue" aria-live="polite">Ready when you are</h1>
+    <p class="count" id="cnt"></p>
+  </div>
+
+  <div class="stage">
+    <svg viewBox="-130 0 660 500" overflow="visible" role="img" aria-label="A meditating Buddha holding a lotus that opens as you breathe in and closes as you breathe out">
+      <defs>
+        <linearGradient id="bud" gradientUnits="userSpaceOnUse" x1="120" y1="40" x2="280" y2="480">
+          <stop offset="0" stop-color="#b8f0cf"/><stop offset=".5" stop-color="#a6e3e0"/><stop offset="1" stop-color="#93c6f2"/>
+        </linearGradient>
+        <linearGradient id="petBack" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ff9ac8"/><stop offset="1" stop-color="#fff4fa"/>
+        </linearGradient>
+        <linearGradient id="petFront" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ffc3df"/><stop offset="1" stop-color="#ffffff"/>
+        </linearGradient>
+        <radialGradient id="glowG">
+          <stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <circle cx="200" cy="125" r="92" fill="url(#glowG)" opacity=".55"/>
+      <g fill="url(#bud)">
+        <ellipse cx="200" cy="70" rx="19" ry="16"/>
+        <path d="M200 76C228 76 243 98 243 124C243 152 226 177 200 180C174 177 157 152 157 124C157 98 172 76 200 76Z"/>
+        <path d="M158 112C146 112 147 138 152 150C155 162 160 168 162 158L163 118Z"/>
+        <path d="M242 112C254 112 253 138 248 150C245 162 240 168 238 158L237 118Z"/>
+        <path d="M178 156Q179 178 172 198L228 198Q221 178 222 156Z"/>
+        <path d="M120 226Q150 202 184 192L216 192Q250 202 280 226L294 372Q200 410 106 372Z"/>
+        <path d="M136 212Q94 262 98 334Q108 394 186 402L192 376Q148 368 142 332Q142 276 172 228Z"/>
+        <path transform="translate(400 0) scale(-1 1)" d="M136 212Q94 262 98 334Q108 394 186 402L192 376Q148 368 142 332Q142 276 172 228Z"/>
+        <ellipse cx="200" cy="392" rx="46" ry="15"/>
+        <path d="M52 440Q56 384 128 376L272 376Q344 384 348 440Q350 474 306 478L94 478Q50 474 52 440Z"/>
+        <ellipse cx="96" cy="430" rx="52" ry="34"/>
+        <ellipse cx="304" cy="430" rx="52" ry="34"/>
+      </g>
+      <circle id="glow" cx="200" cy="312" r="100" fill="url(#glowG)" opacity=".1"/>
+      <g id="lotus" transform="translate(200 368) scale(1.12 1)" stroke="#fff" stroke-opacity=".9" stroke-width="1.5" stroke-linejoin="round"></g>
+    </svg>
+  </div>
+
+  <section class="panel" aria-label="Breathing controls">
+    <div class="row">
+      <span class="label" id="swl">Breathing guide</span>
+      <button class="switch" id="sw" role="switch" aria-checked="false" aria-labelledby="swl"></button>
+    </div>
+    <div>
+      <div class="row">
+        <label class="label" for="rng">Seconds per breath</label>
+        <span class="sub" id="info"></span>
+      </div>
+      <input type="range" id="rng" min="2" max="10" step="1" value="4">
+      <div class="ticks" id="ticks" aria-hidden="true"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+  var $=function(s){return document.querySelector(s)};
+  var sw=$('#sw'), rng=$('#rng'), cue=$('#cue'), cnt=$('#cnt'), info=$('#info'), glow=$('#glow'), lotus=$('#lotus'), ticks=$('#ticks');
+  var NS='http://www.w3.org/2000/svg';
+  var D='M0 0C-26 -20 -30 -58 0 -86C30 -58 26 -20 0 0Z';
+  var defs=[[-82,1,'petBack'],[-55,1,'petBack'],[-28,1,'petBack'],[0,1,'petBack'],[28,1,'petBack'],[55,1,'petBack'],[82,1,'petBack'],
+            [-68,.85,'petFront'],[-40,.85,'petFront'],[-14,.85,'petFront'],[14,.85,'petFront'],[40,.85,'petFront'],[68,.85,'petFront']];
+  var petals=defs.map(function(p){
+    var el=document.createElementNS(NS,'path');
+    el.setAttribute('d',D); el.setAttribute('fill','url(#'+p[2]+')');
+    lotus.appendChild(el);
+    return {el:el,a:p[0],s:p[1]};
+  });
+  for(var i=2;i<=10;i++){var t=document.createElement('span');t.textContent=i;ticks.appendChild(t);}
+
+  var on=false, phase=0, frac=0, v=0, T=+rng.value, last=performance.now();
+
+  function draw(){
+    var spread=.55+.45*v, sc=.85+.3*v;
+    petals.forEach(function(p){p.el.setAttribute('transform','rotate('+(p.a*spread)+') scale('+(p.s*sc)+')');});
+    glow.setAttribute('opacity',(.1+.5*v).toFixed(3));
+  }
+  function setCue(){cue.textContent=phase?'Breathe out':'Breathe in';}
+  function setIdle(){cue.textContent='Ready when you are';cnt.textContent='Turn on the guide to begin';}
+  function setRange(){
+    T=+rng.value;
+    info.textContent=T+' sec in, '+T+' sec out';
+    rng.setAttribute('aria-valuetext',T+' seconds per breath');
+    Array.prototype.forEach.call(ticks.children,function(s,i){s.classList.toggle('on',i+2===T);});
+  }
+  function frame(now){
+    var dt=Math.min(.1,(now-last)/1000); last=now;
+    if(on){
+      frac+=dt/T;
+      if(frac>=1){frac-=1;phase=1-phase;setCue();}
+      var e=.5-.5*Math.cos(Math.PI*frac);
+      v=phase?1-e:e;
+      cnt.textContent=Math.max(1,Math.ceil(T*(1-frac)-1e-6));
+    }else{
+      v+=(0-v)*Math.min(1,dt*3);
+    }
+    draw();
+    requestAnimationFrame(frame);
+  }
+  sw.addEventListener('click',function(){
+    on=!on;
+    sw.setAttribute('aria-checked',on);
+    if(on){phase=0;frac=Math.acos(1-2*Math.min(1,Math.max(0,v)))/Math.PI;setCue();}
+    else{setIdle();}
+  });
+  rng.addEventListener('input',setRange);
+  setRange(); setIdle(); draw();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
