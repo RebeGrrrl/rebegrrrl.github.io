@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium QR Code Generator</title>
+    <!-- Tailwind CSS CDN (Whitelisted) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Configure Tailwind to support class-based dark mode
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {}
+            }
+        }
+    </script>
+    <!-- QRious QR Code Library CDN (Whitelisted cloudflare.com) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: background 0.5s ease, color 0.3s ease;
+        }
+
+        /* Custom Vibrant Pastel Rainbow Unicorn Theme Specification Layer */
+        html.unicorn body {
+            background: linear-gradient(-45deg, #ffadad, #ffd6a5, #fdffb6, #caffbf, #9bf6ff, #a0c4ff, #bdb2ff, #ffc6ff);
+            background-size: 400% 400%;
+            animation: unicornGradient 12s ease infinite;
+            color: #4c1d95;
+        }
+
+        @keyframes unicornGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Enhanced Colorful Card Background configuration */
+        html.unicorn #main-card {
+            background: linear-gradient(135deg, rgba(255, 173, 173, 0.35), rgba(255, 214, 165, 0.35), rgba(253, 255, 182, 0.35), rgba(202, 255, 191, 0.35), rgba(155, 246, 255, 0.35), rgba(160, 196, 255, 0.35), rgba(189, 178, 255, 0.35), rgba(255, 198, 255, 0.35));
+            backdrop-filter: blur(25px);
+            border: 4px solid transparent;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.65)), linear-gradient(to right, #ffadad, #ffd6a5, #fdffb6, #caffbf, #9bf6ff, #a0c4ff, #bdb2ff, #ffc6ff);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            box-shadow: 0 30px 60px rgba(189, 178, 255, 0.45), 0 0 40px rgba(255, 198, 255, 0.5);
+        }
+
+        html.unicorn #control-pane {
+            border-color: rgba(255, 198, 255, 0.4);
+        }
+
+        html.unicorn #url-input {
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid transparent;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)), linear-gradient(to right, #ffadad, #fdffb6, #9bf6ff, #ffc6ff);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            color: #4c1d95;
+        }
+
+        html.unicorn #url-input::placeholder {
+            color: #a78bfa;
+        }
+
+        html.unicorn #custom-box {
+            background: rgba(255, 255, 255, 0.45);
+            border: 2px solid transparent;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.45)), linear-gradient(to left, #ffd6a5, #caffbf, #a0c4ff, #ffc6ff);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+        }
+
+        html.unicorn #qr-frame {
+            background: rgba(255, 255, 255, 0.95);
+            border: 3px solid transparent;
+            background-image: linear-gradient(white, white), linear-gradient(to bottom right, #ffadad, #ffd6a5, #fdffb6, #caffbf, #9bf6ff, #a0c4ff, #bdb2ff, #ffc6ff);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            box-shadow: 0 15px 35px rgba(255, 182, 193, 0.4);
+        }
+
+        html.unicorn #empty-state {
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        html.unicorn #preview-url {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(189, 178, 255, 0.4);
+            color: #6d28d9;
+        }
+
+        html.unicorn .level-btn:not(.bg-indigo-600) {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(255, 198, 255, 0.6);
+            color: #6d28d9;
+        }
+
+        html.unicorn .level-btn:not(.bg-indigo-600):hover {
+            background: #fff5f5;
+            border-color: #ffadad;
+        }
+
+        html.unicorn #copy-link-btn, html.unicorn #reset-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(189, 178, 255, 0.5);
+            color: #6d28d9;
+        }
+
+        html.unicorn #copy-link-btn:hover, html.unicorn #reset-btn:hover {
+            background: #f3e8ff;
+            border-color: #bdb2ff;
+        }
+
+        html.unicorn #theme-toggle-btn {
+            background: linear-gradient(45deg, #ffadad, #ffd6a5, #fdffb6, #9bf6ff, #bdb2ff, #ffc6ff);
+            background-size: 200% 200%;
+            animation: unicornGradient 4s linear infinite;
+            color: #4c1d95;
+            box-shadow: 0 4px 15px rgba(255, 198, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        /* Organic Parabolic Arc Trajectory Keyframe Setup */
+        @keyframes fireworkConfettiFly {
+            0% {
+                transform: translate(-50%, -50%) scale(0.1);
+                opacity: 0;
+            }
+            5% {
+                opacity: 1;
+            }
+            30% {
+                transform: translate(var(--bx), var(--by-apex)) scale(1);
+            }
+            75% {
+                opacity: 0.9;
+            }
+            100% {
+                transform: translate(var(--dx), var(--dy)) scale(0.15);
+                opacity: 0;
+            }
+        }
+
+        /* Balanced Shifting White Sparkle Water Glint Animation */
+        @keyframes waterGlint {
+            0% {
+                transform: rotate(0deg) scale(0.4);
+                opacity: 0.15;
+            }
+            50% {
+                transform: rotate(45deg) scale(1.2);
+                opacity: 0.9;
+            }
+            100% {
+                transform: rotate(90deg) scale(0.3);
+                opacity: 0.1;
+            }
+        }
+
+        .confetti-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 99999;
+            animation: fireworkConfettiFly var(--dur) cubic-bezier(0.1, 0.25, 0.45, 1) forwards;
+        }
+
+        /* Shifting White Sharp-Edged Water Sparkle Structural Inner Canvas Layer */
+        .sparkle-inner {
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            clip-path: polygon(50% 0%, 63% 37%, 100% 50%, 63% 63%, 50% 100%, 37% 63%, 0% 50%, 37% 37%);
+            animation: waterGlint var(--glint-speed) ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 overflow-x-hidden">
+
+    <div id="main-card" class="relative w-full max-w-4xl bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700/50 overflow-hidden grid grid-cols-1 md:grid-cols-12 transition-all duration-300 z-10">
+        
+        <!-- Left Side: Controls & Inputs -->
+        <div id="control-pane" class="p-6 sm:p-8 md:col-span-7 flex flex-col justify-between border-b border-slate-200 dark:border-slate-700/50 md:border-b-0 md:border-r transition-colors duration-300">
+            <div>
+                <!-- Header & Theme Toggle -->
+                <div class="flex items-center justify-between mb-8">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-600/30">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white html.unicorn:text-purple-900">QuickQR</h1>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Generate instantly, customize dynamically</p>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Mode Cycle Button -->
+                    <button id="theme-toggle-btn" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 transition-all active:scale-95 flex items-center justify-center min-w-[44px] min-h-[44px]" aria-label="Toggle Theme">
+                        <!-- Sun Icon -->
+                        <svg id="theme-sun" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M16.243 17.657l.707.707M6.343 6.343l.707-.707M12 7a5 5 0 100 10 5 5 0 000-10z"></path>
+                        </svg>
+                        <!-- Moon Icon -->
+                        <svg id="theme-moon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                        </svg>
+                        <!-- Unicorn Emoji Indicator -->
+                        <span id="theme-unicorn" class="text-lg leading-none hidden">🦄</span>
+                    </button>
+                </div>
+
+                <!-- Input Form -->
+                <div class="space-y-5">
+                    <div>
+                        <label for="url-input" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Enter URL or Text</label>
+                        <div class="relative">
+                            <input type="text" id="url-input" placeholder="https://example.com" 
+                                class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-3.5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all pr-12 text-sm"
+                                value="https://google.com">
+                            <button id="clear-btn" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Customization Container -->
+                    <div id="custom-box" class="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/30 rounded-2xl p-4 space-y-4 transition-colors duration-300">
+                        <h2 class="text-sm font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Customization</h2>
+                        
+                        <!-- Color Pickers -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1.5">QR Code Color</label>
+                                <div class="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2 transition-colors duration-300">
+                                    <input type="color" id="fg-color" value="#000000" class="w-8 h-8 rounded border-0 bg-transparent cursor-pointer">
+                                    <span id="fg-text" class="text-xs font-mono text-slate-600 dark:text-slate-300">#000000</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1.5">Background Color</label>
+                                <div class="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2 transition-colors duration-300">
+                                    <input type="color" id="bg-color" value="#ffffff" class="w-8 h-8 rounded border-0 bg-transparent cursor-pointer">
+                                    <span id="bg-text" class="text-xs font-mono text-slate-600 dark:text-slate-300">#ffffff</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Size & Correction -->
+                        <div class="space-y-3 pt-2">
+                            <div>
+                                <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                    <span>Resolution/Size</span>
+                                    <span id="size-val">300px</span>
+                                </div>
+                                <input type="range" id="size-slider" min="150" max="500" step="10" value="300" 
+                                    class="w-full accent-indigo-500 bg-slate-200 dark:bg-slate-700 h-1.5 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1.5">Error Correction Level</label>
+                                <div class="grid grid-cols-4 gap-2 text-center text-xs">
+                                    <button data-level="L" class="level-btn py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">Low</button>
+                                    <button data-level="M" class="level-btn py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">Medium</button>
+                                    <button data-level="Q" class="level-btn py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">Quartile</button>
+                                    <button data-level="H" class="level-btn py-2 rounded-lg bg-indigo-600 border border-indigo-500 font-semibold text-white">High</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toast / Message Box -->
+            <div id="toast" class="opacity-0 pointer-events-none transform translate-y-2 bg-emerald-500/20 border border-emerald-500 text-emerald-600 dark:text-emerald-300 px-4 py-3 rounded-xl text-sm flex items-center gap-2 mt-4 transition-all duration-300">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span id="toast-msg">Success message here</span>
+            </div>
+        </div>
+
+        <!-- Right Side: Live QR Preview & Actions -->
+        <div class="p-6 sm:p-8 md:col-span-5 bg-slate-50/50 dark:bg-slate-900/40 flex flex-col items-center justify-center min-h-[350px] transition-colors duration-300">
+            <div class="text-center w-full max-w-[320px] flex flex-col items-center">
+                
+                <!-- QR Frame Container -->
+                <div id="qr-frame" class="relative bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-xl group transition-all duration-300 hover:border-indigo-500/40 mb-6 flex items-center justify-center w-full aspect-square">
+                    <!-- Invisible QRious target canvas -->
+                    <canvas id="qr-canvas" class="max-w-full max-h-full object-contain rounded-lg shadow-inner"></canvas>
+                    
+                    <!-- Empty State Placeholder Overlay -->
+                    <div id="empty-state" class="absolute inset-0 bg-white dark:bg-slate-800 flex flex-col items-center justify-center p-6 rounded-2xl hidden">
+                        <div class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-700/40 flex items-center justify-center mb-3 text-slate-400 dark:text-slate-500">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 00-5.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                        </div>
+                        <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Waiting for input...</p>
+                        <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Provide content to generate</p>
+                    </div>
+                </div>
+
+                <!-- Live Track Text Indicator -->
+                <p id="preview-url" class="text-xs text-slate-600 dark:text-slate-400 truncate w-full mb-6 font-mono bg-white dark:bg-slate-800/50 px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-700/30">
+                    https://google.com
+                </p>
+
+                <!-- Action Button Matrix -->
+                <div class="w-full space-y-2">
+                    <button id="download-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 px-4 rounded-xl shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Download PNG
+                    </button>
+                    
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="copy-link-btn" class="bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 py-2.5 px-3 rounded-xl text-xs font-medium transition-colors flex items-center justify-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                            Copy Link
+                        </button>
+                        <button id="reset-btn" class="bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700 py-2.5 px-3 rounded-xl text-xs font-medium transition-colors flex items-center justify-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.253 8H18"></path></svg>
+                            Reset Style
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Application Script Execution -->
+    <script>
+        // Document Elements Selection
+        const htmlElement = document.documentElement;
+        const themeToggleBtn = document.getElementById('theme-toggle-btn');
+        const themeSun = document.getElementById('theme-sun');
+        const themeMoon = document.getElementById('theme-moon');
+        const themeUnicorn = document.getElementById('theme-unicorn');
+
+        const urlInput = document.getElementById('url-input');
+        const clearBtn = document.getElementById('clear-btn');
+        const fgColorInput = document.getElementById('fg-color');
+        const bgColorInput = document.getElementById('bg-color');
+        const fgText = document.getElementById('fg-text');
+        const bgText = document.getElementById('bg-text');
+        const sizeSlider = document.getElementById('size-slider');
+        const sizeVal = document.getElementById('size-val');
+        const previewUrl = document.getElementById('preview-url');
+        const downloadBtn = document.getElementById('download-btn');
+        const copyLinkBtn = document.getElementById('copy-link-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const emptyState = document.getElementById('empty-state');
+        const canvasElement = document.getElementById('qr-canvas');
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toast-msg');
+
+        let currentLevel = 'H';
+        let currentTheme = 'dark'; 
+        let debounceTimeout;
+
+        function applyTheme(theme) {
+            htmlElement.classList.remove('dark', 'unicorn');
+            themeSun.classList.add('hidden');
+            themeMoon.classList.add('hidden');
+            themeUnicorn.classList.add('hidden');
+
+            if (theme === 'dark') {
+                htmlElement.classList.add('dark');
+                themeSun.classList.remove('hidden'); 
+            } else if (theme === 'unicorn') {
+                htmlElement.classList.add('unicorn');
+                themeUnicorn.classList.remove('hidden');
+            } else {
+                themeMoon.classList.remove('hidden');
+            }
+            currentTheme = theme;
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            if (currentTheme === 'dark') {
+                applyTheme('unicorn');
+                showToast("Vibrant Pastel Rainbow Mode Activated! 🌈🦄✨");
+                triggerConfetti();
+            } else if (currentTheme === 'unicorn') {
+                applyTheme('light');
+                showToast("Switched to Light Mode");
+            } else {
+                applyTheme('dark');
+                showToast("Switched to Dark Mode");
+            }
+        });
+
+        applyTheme('dark');
+
+        const qr = new QRious({
+            element: canvasElement,
+            value: urlInput.value,
+            size: parseInt(sizeSlider.value),
+            background: bgColorInput.value,
+            foreground: fgColorInput.value,
+            level: currentLevel
+        });
+
+        // Optimized Shifting White Asymmetric Sparkle Engine (2/3 back to previous scale/density)
+        function triggerConfetti() {
+            const shellCenters = [
+                { x: 30, y: 45 },
+                { x: 50, y: 35 },
+                { x: 70, y: 45 }
+            ];
+
+            shellCenters.forEach((center, shellIndex) => {
+                setTimeout(() => {
+                    // Density parameter adjusted ~2/3 back toward higher values (from 45 to 58)
+                    const particleDensity = 58; 
+
+                    for (let i = 0; i < particleDensity; i++) {
+                        const p = document.createElement('div');
+                        p.className = 'confetti-particle';
+                        
+                        // Size envelope optimized to ~2/3 scale back (Micro: 3.5-7.5px, Standout: 11-15px)
+                        let size;
+                        if (Math.random() > 0.82) {
+                            size = Math.random() * 4 + 11;  
+                        } else {
+                            size = Math.random() * 4 + 3.5; 
+                        }
+                        
+                        p.style.width = `${size}px`;
+                        p.style.height = `${size}px`;
+                        
+                        p.style.left = `${center.x}vw`;
+                        p.style.top = `${center.y}vh`;
+                        
+                        const radialAngle = Math.random() * Math.PI * 2;
+                        const force = Math.random() * 135 + 38;
+                        
+                        // Phase 1: Outward high-arcing velocity coordinates
+                        const bx = Math.cos(radialAngle) * force;
+                        const byApex = Math.sin(radialAngle) * (force * 0.45) - (Math.random() * 65 + 38); 
+                        
+                        // Phase 2: Natural outward-continuing horizontal drift vectors for realistic parabolic arcs
+                        const dx = bx * (Math.random() * 0.45 + 1.3);
+                        const dy = byApex + (Math.random() * 170 + 300); 
+                        
+                        // Stable animation durations for gradual pacing tracking loop
+                        const duration = `${Math.random() * 1.8 + 4.1}s`; 
+                        const glintSpeed = `${Math.random() * 0.25 + 0.18}s`; 
+
+                        p.style.setProperty('--bx', `${bx}px`);
+                        p.style.setProperty('--by-apex', `${byApex}px`);
+                        p.style.setProperty('--dx', `${dx}px`);
+                        p.style.setProperty('--dy', `${dy}px`);
+                        p.style.setProperty('--dur', duration);
+
+                        // Instantiate custom sharp-edged white internal child node element
+                        const inner = document.createElement('div');
+                        inner.className = 'sparkle-inner';
+                        inner.style.setProperty('--glint-speed', glintSpeed);
+                        
+                        p.appendChild(inner);
+                        document.body.appendChild(p);
+
+                        setTimeout(() => {
+                            p.remove();
+                        }, 6000);
+                    }
+                }, shellIndex * 250);
+            });
+        }
+
+        function updateQRCode(shouldAnimate = false) {
+            let inputValue = urlInput.value.trim();
+            
+            if (inputValue === "") {
+                canvasElement.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                previewUrl.textContent = "No content provided";
+                downloadBtn.disabled = true;
+                downloadBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                return;
+            }
+
+            if (!inputValue.toLowerCase().startsWith('https://')) {
+                if (inputValue.toLowerCase().startsWith('http://')) {
+                    inputValue = 'https://' + inputValue.substring(7);
+                } else {
+                    inputValue = 'https://' + inputValue;
+                }
+            }
+
+            canvasElement.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+            downloadBtn.disabled = false;
+            downloadBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            qr.set({
+                value: inputValue,
+                size: parseInt(sizeSlider.value),
+                background: bgColorInput.value,
+                foreground: fgColorInput.value,
+                level: currentLevel
+            });
+
+            previewUrl.textContent = inputValue;
+
+            if (shouldAnimate) {
+                triggerConfetti();
+            }
+        }
+
+        function showToast(message, isError = false) {
+            toastMsg.textContent = message;
+            if(isError) {
+                toast.classList.replace('bg-emerald-500/20', 'bg-rose-500/20');
+                toast.classList.replace('border-emerald-500', 'border-rose-500');
+                toast.classList.replace('text-emerald-600', 'text-rose-600');
+                toast.classList.replace('text-emerald-300', 'text-rose-300');
+            } else {
+                toast.classList.replace('bg-rose-500/20', 'bg-emerald-500/20');
+                toast.classList.replace('border-rose-500', 'border-emerald-500');
+                toast.classList.replace('text-rose-600', 'text-emerald-600');
+                toast.classList.replace('text-rose-300', 'text-emerald-300');
+            }
+            toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+            }, 3000);
+        }
+
+        urlInput.addEventListener('input', () => {
+            updateQRCode(false); 
+            clearTimeout(debounceTimeout);
+            debounceTimeout = setTimeout(() => {
+                if (urlInput.value.trim() !== "") {
+                    triggerConfetti();
+                }
+            }, 450);
+        });
+
+        urlInput.addEventListener('blur', () => {
+            let val = urlInput.value.trim();
+            if (val !== "" && !val.toLowerCase().startsWith('https://')) {
+                if (val.toLowerCase().startsWith('http://')) {
+                    urlInput.value = 'https://' + val.substring(7);
+                } else {
+                    urlInput.value = 'https://' + val;
+                }
+                updateQRCode(false);
+            }
+        });
+
+        clearBtn.addEventListener('click', () => {
+            urlInput.value = '';
+            urlInput.focus();
+            updateQRCode(false);
+        });
+
+        fgColorInput.addEventListener('input', (e) => {
+            fgText.textContent = e.target.value.toUpperCase();
+            updateQRCode(true);
+        });
+
+        bgColorInput.addEventListener('input', (e) => {
+            bgText.textContent = e.target.value.toUpperCase();
+            updateQRCode(true);
+        });
+
+        sizeSlider.addEventListener('input', (e) => {
+            sizeVal.textContent = `${e.target.value}px`;
+            updateQRCode(false);
+        });
+
+        document.querySelectorAll('.level-btn, [data-level]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('[data-level]').forEach(b => {
+                    b.className = "level-btn py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors";
+                });
+                
+                const targetedBtn = e.currentTarget;
+                targetedBtn.className = "level-btn py-2 rounded-lg bg-indigo-600 border border-indigo-500 font-semibold text-white";
+                
+                currentLevel = targetedBtn.getAttribute('data-level');
+                updateQRCode(true);
+            });
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            if(urlInput.value.trim() === "") return;
+            try {
+                const dataUrl = canvasElement.toDataURL("image/png");
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.href = dataUrl;
+                downloadAnchor.download = `qr-code-${Date.now()}.png`;
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                document.body.removeChild(downloadAnchor);
+                showToast("QR Code downloaded successfully!");
+                triggerConfetti();
+            } catch(err) {
+                showToast("Download failed, try again.", true);
+            }
+        });
+
+        copyLinkBtn.addEventListener('click', () => {
+            const textToCopy = previewUrl.textContent.trim();
+            if(!textToCopy || textToCopy === "No content provided") {
+                showToast("Nothing to copy!", true);
+                return;
+            }
+            
+            const hiddenTextArea = document.createElement("textarea");
+            hiddenTextArea.value = textToCopy;
+            hiddenTextArea.style.position = "fixed";
+            document.body.appendChild(hiddenTextArea);
+            hiddenTextArea.select();
+            
+            try {
+                const status = document.execCommand('copy');
+                if(status) {
+                    showToast("Link text copied to clipboard!");
+                    triggerConfetti();
+                } else {
+                    showToast("Failed to copy link text.", true);
+                }
+            } catch (err) {
+                showToast("Error executing clipboard action.", true);
+            }
+            
+            document.body.removeChild(hiddenTextArea);
+        });
+
+        resetBtn.addEventListener('click', () => {
+            fgColorInput.value = "#000000";
+            bgColorInput.value = "#ffffff";
+            fgText.textContent = "#000000";
+            bgText.textContent = "#ffffff";
+            sizeSlider.value = "300";
+            sizeVal.textContent = "300px";
+            
+            document.querySelectorAll('[data-level]').forEach(b => {
+                if(b.getAttribute('data-level') === 'H') {
+                    b.className = "level-btn py-2 rounded-lg bg-indigo-600 border border-indigo-500 font-semibold text-white";
+                } else {
+                    b.className = "level-btn py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors";
+                }
+            });
+            currentLevel = 'H';
+            
+            updateQRCode(false);
+            showToast("Styles reset to system defaults.");
+        });
+
+        updateQRCode(false);
+    </script>
+</body>
+</html>
